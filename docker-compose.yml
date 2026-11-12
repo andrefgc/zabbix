@@ -14,7 +14,7 @@ services:
 #      - ./zabbix-db.cnf:/etc/mysql/conf.d/znuny.cnf
 
   zabbix-server:
-    image: zabbix/zabbix-server-mysql:6.0.49-alpine
+    image: zabbix/zabbix-server-mysql:6.0-alpine-latest
     container_name: zabbix-server
     hostname: zabbix-server
     ports:
@@ -29,7 +29,7 @@ services:
       MYSQL_PASSWORD: ${ZABBIX_PASS}
 
   zabbix-web:
-    image: zabbix/zabbix-web-nginx-mysql:6.0.49-alpine
+    image: zabbix/zabbix-web-nginx-mysql:6.0-alpine-latest
     container_name: zabbix-web
     hostname: zabbix-web
     ports:
@@ -45,3 +45,27 @@ services:
       MYSQL_PASSWORD: ${ZABBIX_PASS}
     depends_on:
       - zabbix-server
+
+  zabbix-agent:
+    image: zabbix/zabbix-agent:6.0-alpine-latest
+    container_name: zabbix-agent
+    hostname: zabbix-agent
+    ports:
+    - "10050:10050"
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
+#    - ./zbx_env/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
+#    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+#    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+#    environment:
+#      ZBX_HOSTNAME: zabbix-server
+    #   ZBX_SERVER_HOST: zabbix-server
+    links:
+    - zabbix-server:zabbix-server
+#    env_file:
+#    - .env_agent
+    user: root
+    privileged: true
+    pid: "host"
