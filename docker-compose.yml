@@ -1,0 +1,47 @@
+services:
+  zabbix-db:
+    container_name: zabbix-db
+    hostname: zabbix-db
+    image: mariadb:10.11
+#    ports:
+#      - 3306:3306
+    environment:
+      MARIADB_AUTO_UPGRADE: true
+      MARIADB_ROOT_PASSWORD: ${ZABBIX_DB_PASS}      
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./zabbix-db:/var/lib/mysql/
+#      - ./zabbix-db.cnf:/etc/mysql/conf.d/znuny.cnf
+
+  zabbix-server:
+    image: zabbix/zabbix-server-mysql:6.0.49-alpine
+    container_name: zabbix-server
+    hostname: zabbix-server
+    ports:
+      - 10051:10051
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      DB_SERVER_HOST: zabbix-db
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: ${ZABBIX_USER}
+      MYSQL_PASSWORD: ${ZABBIX_PASS}
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-mysql:6.0.49-alpine
+    container_name: zabbix-web
+    hostname: zabbix-web
+    ports:
+      - 8081:8080
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+      DB_SERVER_HOST: zabbix-db
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: ${ZABBIX_USER}
+      MYSQL_PASSWORD: ${ZABBIX_PASS}
+    depends_on:
+      - zabbix-server
